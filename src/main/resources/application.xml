@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/rabbit http://www.springframework.org/schema/rabbit/spring-rabbit-1.7.xsd">
+
+	<!-- 1. 定义RabbitMQ 的连接工厂 -->
+	<rabbit:connection-factory id="connectionFactory" host="120.78.138.11" port="5672" username="cris" password="123" virtual-host="/vhost_cris"/>
+	
+		<!-- 2. 定义Rabbit 模板，指定连接工厂和交换器 -->
+	<rabbit:template id="rabbitTemplate" connection-factory="connectionFactory" exchange="fanoutExchange"></rabbit:template>
+	
+	<!-- 定义MQ 的管理 -->
+	<rabbit:admin connection-factory="connectionFactory"/>
+	
+	<!-- 定义队列,自动声明 -->
+	<rabbit:queue name="myQueue" auto-declare="true" durable="true" ></rabbit:queue>
+	
+	<!-- 定义交换器，自动声明 -->
+	<rabbit:fanout-exchange name="fanoutExchange" auto-declare="true">
+		<rabbit:bindings>
+			<rabbit:binding queue="myQueue"></rabbit:binding>
+		</rabbit:bindings>
+	</rabbit:fanout-exchange>
+	
+	<!-- 3. 消费者 -->
+	<bean id="consumer" class="com.cris.spring.Consumer"></bean>
+	
+	<!-- 队列监听 -->
+	<rabbit:listener-container connection-factory="connectionFactory">
+		<rabbit:listener ref="consumer" queue-names="myQueue" method="listen"/>
+	</rabbit:listener-container>
+
+
+
+
+</beans>
